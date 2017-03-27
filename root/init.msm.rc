@@ -14,13 +14,6 @@ on boot
     setprop net.tcp.buffersize.hsupa 131072,262144,1220608,4096,16384,199680
     setprop net.tcp.buffersize.lte  524288,1048576,4194304,262144,524288,2097152
     setprop net.tcp.buffersize.cdma   4096,12288,24576,4096,12288,24576
-    setprop net.tcp.buffersize.1xrtt  16384,32768,65536,4096,16384,51200
-    setprop net.tcp.buffersize.evdo   16384,32768,65536,4096,16384,51200
-    setprop net.tcp.buffersize.ehrpd  131072,262144,524288,4096,16384,262144
-    setprop net.tcp.buffersize.evdo_b 131072,262144,524288,4096,16384,262144
-    setprop net.tcp.buffersize.2ghotspot     4096,16384,32768,16384,32768,65536
-    setprop net.tcp.buffersize.3ghotspot     4096,16384,199680,131072,262144,726016
-    setprop net.tcp.buffersize.4ghotspot     262144,524288,2097152,524288,1048576,4194304
 
 # Assign TCP buffer thresholds to be ceiling value of technology maximums
 # Increased technology maximums should be reflected here.
