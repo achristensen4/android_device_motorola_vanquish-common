@@ -26,7 +26,7 @@
 #
 
 # use init.mmi.usb.rc
-# import init.qcom.usb.rc
+import init.mmi.usb.rc
 
 on init
     # Set permissions for persist partition
@@ -70,8 +70,8 @@ on boot
     setprop wifi.interface wlan0
 
     #Set SUID bit for usbhub
-    # chmod 4755 /system/bin/usbhub
-    # chmod 755 /system/bin/usbhub_init
+    chmod 4755 /system/bin/usbhub
+    chmod 755 /system/bin/usbhub_init
 
     #Remove SUID bit for iproute2 ip tool
     chmod 0755 /system/bin/ip
@@ -165,12 +165,12 @@ on post-fs-data
     #Create the symlink to qcn wpa_supplicant folder for ar6000 wpa_supplicant
     mkdir /data/system 0775 system system
     rm /data/system/wpa_supplicant
-    #symlink /data/misc/wifi/wpa_supplicant /data/system/wpa_supplicant
+    symlink /data/misc/wifi/wpa_supplicant /data/system/wpa_supplicant
 
     # GPS team does not plan to use the wiperiface service
     # Create directories for wiper services
-    # mkdir /data/wpstiles/ 0755 shell
-    # mkdir /data/wiper 0755 location qcom_oncrpc
+    mkdir /data/wpstiles/ 0755 shell
+    mkdir /data/wiper 0755 location qcom_oncrpc
 
     #Create directories for gpsone_daemon services
     mkdir /data/misc/gpsone_d 0770 system system
@@ -204,20 +204,19 @@ on post-fs-data
     chmod 0660 /persist/WCNSS_qcom_wlan_nv.bin
 
 # Export GPIO56 for fusion targets to enable/disable hub
-# service usbhub_init /system/bin/usbhub_init
-#    class late_start
-#    user root
-#    disabled
-#    oneshot
+service usbhub_init /system/bin/usbhub_init
+class main
+user root
+oneshot
 
-# on property:ro.board.platform=msm7630_fusion
-#     start usbhub_init
+on property:ro.board.platform=msm7630_fusion
+start usbhub_init
 
 on property:init.svc.wpa_supplicant=stopped
     stop dhcpcd
 
 on property:bluetooth.isEnabled=true
-#    start btwlancoex
+start btwlancoex
     write /sys/class/bluetooth/hci0/idle_timeout 7000
 
 service qcom-c_core-sh /system/bin/sh /init.qcom.class_core.sh
@@ -236,36 +235,31 @@ on property:vold.decrypt=trigger_restart_framework
 service rmt_storage /system/bin/rmt_storage /dev/block/mmcblk0p10 /dev/block/mmcblk0p11 /dev/block/mmcblk0p17
     class core
     user root
-    disabled
 
 on property:ro.boot.emmc=true
     start rmt_storage
 
 service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
-    class late_start
+    class main
     user bluetooth
     group qcom_oncrpc bluetooth net_bt_admin
-    disabled
     oneshot
 
 service bt-dun /system/bin/dun-server /dev/smd7 /dev/rfcomm0
-    class late_start
+    class main
     user bluetooth
     group bluetooth net_bt_admin inet
-    disabled
     oneshot
 
 service bridgemgrd /system/bin/bridgemgrd
-    class late_start
+    class main
     user radio
     group radio
-    disabled
 
 service port-bridge /system/bin/port-bridge /dev/smd0 /dev/ttyGS0
-    class late_start
+    class main
     user system
     group system inet
-    disabled
 
 on property:ro.baseband="msm"
     # Enable BT-DUN only for all msms
@@ -275,24 +269,20 @@ service qmiproxy /system/bin/qmiproxy
     class main
     user radio
     group radio
-    disabled
 
 # QMUX must be in multiple groups to support external process connections
 service qmuxd /system/bin/qmuxd
     class main
     user radio
     group radio audio bluetooth
-    disabled
 
 service netmgrd /system/bin/netmgrd
     class main
-    disabled
 
 service sensors /system/bin/logwrapper /system/bin/sensorsqcomwrapper.sh
-    class late_start
+    class main
     user root
     group root
-    disabled
 
 on property:ro.use_data_netmgrd=false
     # netmgr not supported on specific target
@@ -303,21 +293,18 @@ on property:ro.use_data_netmgrd=false
 on property:ro.data.large_tcp_window_size=true
     write /proc/sys/net/ipv4/tcp_adv_win_scale  1
 
-#service btwlancoex /system/bin/sh /system/etc/init.qcom.coex.sh
-#    class late_start
-#    user bluetooth
-#    group bluetooth net_bt_admin inet net_admin net_raw
-#    disabled
-#    oneshot
+service btwlancoex /system/bin/sh /system/etc/init.qcom.coex.sh
+class main
+user bluetooth
+group bluetooth net_bt_admin inet net_admin net_raw
+oneshot
 
 service dhcpcd_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -B -d -t 30
-    class late_start
-    disabled
+    class main
     oneshot
 
 service dhcpcd_p2p /system/bin/logwrapper /system/bin/dhcpcd -BKLG -d
-    class late_start
-    disabled
+    class main
     oneshot
 
 service dhcpcd_usbeth0 /system/bin/logwrapper /system/bin/dhcpcd -BKLG -d
@@ -331,54 +318,46 @@ service iprenew_usbeth0 /system/bin/dhcpcd -nBK
     oneshot
 
 service iprenew_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -n
-    class late_start
-    disabled
+    class main
     oneshot
 
 service iprenew_p2p /system/bin/logwrapper /system/bin/dhcpcd -n -d
-    class late_start
-    disabled
+    class main
     oneshot
 
 service dhcpcd_bnep0 /system/bin/dhcpcd -B -t 30
-    class late_start
-    disabled
+    class main
     oneshot
 
 service iprenew_bnep0 /system/bin/dhcpcd -n
-    class late_start
-    disabled
+    class main
     oneshot
 
 # GPS team does not plan to use the wiperiface service
-#service wiperiface /system/bin/wiperiface
-#    user location
-#    group qcom_oncrpc
-#    oneshot
+service wiperiface /system/bin/wiperiface
+user location
+group qcom_oncrpc
+oneshot
 
 service gpsone_daemon /system/bin/gpsone_daemon
-    class late_start
+    class main
     user system
     group system qcom_oncrpc inet
-    disabled
 
 service quipc_igsn /system/bin/quipc_igsn
-    class late_start
+    class main
     user gps
     group inet gps
-    disabled
 
 service quipc_main /system/bin/quipc_main
-    class late_start
+    class main
     user gps
     group net_admin wifi inet gps
-    disabled
 
 service fm_dl /system/bin/sh /system/etc/init.qcom.fm.sh
-    class late_start
+    class main
     user root
     group system qcom_oncrpc
-    disabled
     oneshot
 
 on property:crypto.driver.load=1
@@ -390,14 +369,13 @@ on property:crypto.driver.load=0
      exec /system/bin/rmmod qce.ko
 
 service qcom-sh /system/bin/sh /init.qcom.sh
-    class late_start
+    class main
     user root
     oneshot
 
 service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
-    class late_start
+    class main
     user root
-    disabled
     oneshot
 
 on property:sys.boot_completed=1
@@ -405,45 +383,41 @@ on property:sys.boot_completed=1
     start loadpreinstalls
 
 service atfwd /system/bin/ATFWD-daemon
-    class late_start
+    class main
     user system
     group system radio
     onrestart exec /system/bin/log -t RIL-ATFWD -p w "ATFWD daemon restarted"
 
 service hdmid /system/bin/hdmid
-    class late_start
+    class main
     socket hdmid stream 0660 root system graphics
     user system
     group system graphics
-    disabled
 
 service ppd /system/bin/mm-pp-daemon
-    class late_start
+    class main
     user system
     socket pps stream 0660 system system graphics
     group system graphics
 
 service hostapd /system/bin/hostapd -dd /data/misc/wifi/hostapd.conf
-    class late_start
+    class main
     user root
     group root
     oneshot
-    disabled
 
 service ds_fmc_appd /system/bin/ds_fmc_appd -p "rmnet0" -D
-    class late_start
+    class main
     group radio wifi inet
-    disabled
     oneshot
 
 on property:persist.data.ds_fmc_app.mode=1
     start ds_fmc_appd
 
 service ims_regmanager /system/bin/exe-ims-regmanagerprocessnative
-    class late_start
+    class main
     user system
     group qcom_oncrpc net_bt_admin inet radio wifi
-    disabled
 
 on property:persist.ims.regmanager.mode=1
     start ims_regmanager
@@ -453,11 +427,10 @@ on property:ro.data.large_tcp_window_size=true
     write /proc/sys/net/ipv4/tcp_adv_win_scale  1
 
 service time_daemon /system/bin/time_daemon
-    class late_start
+    class main
     user root
     group root
     oneshot
-    disabled
 
 on property:persist.timed.enable=true
     start time_daemon
@@ -467,21 +440,18 @@ service ril-daemon1 /system/bin/rild -c 1
     socket rild1 stream 660 root radio
     socket rild-debug1 stream 660 radio system
     user root
-    disabled
     group radio cache inet misc audio sdcard_rw qcom_oncrpc diag
 
 # MOT: used only on Qualcomm Fluid target
-#service profiler_daemon /system/bin/profiler_daemon
-#    class late_start
-#    user root
-#    group root
-#    disabled
+service profiler_daemon /system/bin/profiler_daemon
+class main
+user root
+group root
 
 # daemon will drop to user/group system/media_rw after initializing
 # underlying files in /data/media will be created with user and group media_rw (1023)
 service sdcard /system/bin/sdcard /data/media /mnt/shell/emulated 1023 1023
-    class late_start
-    disabled
+    class main
 
 on property:persist.fuse_sdcard=true
     start sdcard
@@ -489,12 +459,10 @@ on property:persist.fuse_sdcard=true
 service hcidump /system/bin/sh /system/etc/hcidump.sh
     user bluetooth
     group bluetooth system net_bt_admin net_admin
-    disabled
     oneshot
 
 service loadpreinstalls /system/bin/logwrapper /system/bin/loadpreinstalls.sh
-    class late_start
+    class main
     user system
     group system
-    disabled
     oneshot
